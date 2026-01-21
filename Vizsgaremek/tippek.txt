@@ -1,0 +1,74 @@
+2. A szoftver alapvető célja
+
+Ez lehet a központi bekezdés:
+A szoftver elsődleges célja egy olyan egységes, átlátható és részletes termékinformációs rendszer 
+létrehozása, amely lehetővé teszi az élelmiszerboltok teljes termékkínálatának online megtekintését, 
+függetlenül attól, hogy az adott termék szerepel-e aktuális akcióban vagy sem.
+
+Itt kiemelhetitek:
+nem csak akciós termékek minden termék részletes adatokkal
+
+3. A tudatos vásárlás támogatása
+Ez nagyon erős célkitűzés, mindenképp bontsátok ki:
+
+A szoftver támogatja:
+az egészségtudatos életmódot,
+az ételallergiával élőket,
+a speciális étrendet követőket (pl. vegetáriánus, vegán, cukormentes)
+
+A felhasználók előre tájékozódhatnak:
+a termék összetételéről,
+tápértékéről,
+allergén információiról,
+kiszereléséről, származási helyéről
+
+Ezáltal:
+kevesebb impulzusvásárlás történik,
+csökken a helytelen vásárlási döntések száma,
+nő a vásárlói elégedettség
+
+4. Az élelmiszer-áruházláncok számára nyújtott előnyök
+Fontos, hogy ne csak a vásárlók szemszögéből írjatok:
+A rendszer lehetőséget biztosít:
+a teljes termékkínálat online bemutatására
+egységes és strukturált adatkezelésre
+
+Elősegíti:
+a termékek jobb láthatóságát
+a kevésbé ismert árucikkek népszerűsítését
+
+Csökkenti:
+a vásárlói panaszokat
+az üzletekben feltett ismétlődő kérdések számát
+Modern, digitális megjelenést biztosít az áruházláncok számára
+
+5. Oktatási és szakmai cél (vizsgaremek szempontból)
+Ez különösen fontos a tanárok miatt:
+A projekt célja továbbá:
+a frontend és backend fejlesztési ismeretek integrált alkalmazása
+adatbázis-tervezési és -kezelési megoldások bemutatása
+szoftvertesztelési eljárások gyakorlati alkalmazása
+
+A rendszer:
+webes felületet biztosít a felhasználóknak
+háttérrendszerrel kezeli az adatokat
+alkalmas manuális és automatizált tesztelésre
+A projekt bemutatja egy valós problémára adott komplex szoftveres megoldás teljes életciklusát
+
+6. Hosszabb távú célok (opcionális, de nagyon jól mutat)
+
+Ha szeretnétek még bővíteni:
+A szoftver hosszú távú célja:
+több áruházlánc integrálása
+termékek összehasonlíthatósága
+árfigyelés és értesítések
+
+A rendszer alapot biztosíthat:
+mobilalkalmazás fejlesztéséhez
+hűségprogramok integrálásához
+mesterséges intelligencia alapú ajánlásokhoz
+Tipp a megfogalmazáshoz
+Használjatok hosszabb, összetett mondatokat
+Kerüljétek a túl „marketinges” stílust
+Legyen szakmailag indokolt, de közérthető
+Ugyanazt az ötletet több nézőpontból is meg lehet közelíteni (felhasználó – bolt – fejlesztő)
