@@ -1,0 +1,15 @@
+$userId = $_SESSION['user_id']; // A bejelentkezett vásárló ID-ja
+
+$sql = "SELECT 
+            s.quantity, 
+            s.product_price, 
+            p.name AS product_name, 
+            f.name AS shop_name 
+        FROM shopping_list s
+        JOIN products p ON s.product_id = p.ID
+        JOIN firm f ON p.firm_id = f.ID
+        WHERE s.user_id = :userId";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute(['userId' => $userId]);
+$myList = $stmt->fetchAll(PDO::FETCH_ASSOC);
