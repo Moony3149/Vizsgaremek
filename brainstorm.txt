@@ -5,4 +5,8 @@ A céges user:
 
 Admin: Tudja kezeli a cégeket: postolhat vagy nem, admin hagyja jóvá az összes terméket
 
+jelszó modositása emailes verzió
+termék id bekérése termék
+formázás
+
 vercel: tesztelés
