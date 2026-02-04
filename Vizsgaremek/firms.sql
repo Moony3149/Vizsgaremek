@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Jan 28. 12:22
+-- Létrehozás ideje: 2026. Feb 04. 15:26
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -32,6 +32,13 @@ CREATE TABLE `favorites` (
   `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- A tábla adatainak kiíratása `favorites`
+--
+
+INSERT INTO `favorites` (`user_id`, `product_id`) VALUES
+(3, 3);
+
 -- --------------------------------------------------------
 
 --
@@ -44,15 +51,16 @@ CREATE TABLE `firm` (
   `worker_name` varchar(30) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `approved` tinyint(1) DEFAULT 0
+  `approved` tinyint(1) DEFAULT 0,
+  `profile_pic` varchar(255) DEFAULT 'default_firm.png'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- A tábla adatainak kiíratása `firm`
 --
 
-INSERT INTO `firm` (`ID`, `brand_name`, `worker_name`, `email`, `password`, `approved`) VALUES
-(1, 'HARIBO', '', 'haribo.og@gmail.com', '$2y$10$vNU0lh7ZY0AhpY9JBIISVerfn83r5jLd7c16mlmB6IKm51F2OtKEe', 1);
+INSERT INTO `firm` (`ID`, `brand_name`, `worker_name`, `email`, `password`, `approved`, `profile_pic`) VALUES
+(1, 'HARIBO', '', 'haribo.og@gmail.com', '$2y$10$vNU0lh7ZY0AhpY9JBIISVerfn83r5jLd7c16mlmB6IKm51F2OtKEe', 1, 'default_firm.png');
 
 -- --------------------------------------------------------
 
@@ -79,8 +87,10 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`ID`, `name`, `description`, `price`, `weight`, `amount`, `active`, `type`, `picture`, `firm_id`, `approved`) VALUES
-(1, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 499.00, 100, 3432, 1, 'Alapvető élelmiszerek', '1769000491', 1, 0),
-(2, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 499.00, 100, 4534, 1, 'Alapvető élelmiszerek', '1769000535', 1, 0);
+(1, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 499.00, 100, 3425, 1, 'Alapvető élelmiszerek', 'letoltes.jpg', 1, 1),
+(2, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 379.00, 80, 4534, 1, 'Alapvető élelmiszerek', 'letoltes.jpg', 1, 1),
+(3, 'HARIBO Starmix', 'hhhhhhh', 899.00, 250, 7, 1, 'Alapvető élelmiszerek', '1770198067_Haribo-Starmix-Minis-250g.jpg', 1, 1),
+(4, 'HARIBO Rainbow Frogs', '..........', 499.00, 142, 5, 1, 'Alapvető élelmiszerek', '1770198732_Harbio_frogs.jpg', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -108,15 +118,20 @@ CREATE TABLE `users` (
   `userName` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` varchar(20) NOT NULL DEFAULT 'user'
+  `admin` varchar(20) NOT NULL DEFAULT 'user',
+  `profile_pic` varchar(255) DEFAULT 'default_user.png'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- A tábla adatainak kiíratása `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `userName`, `email`, `password`, `role`) VALUES
-(1, 'valami', 'valami', 'valami@hotmail.com', '$2y$10$pNVhxRayvnlgreujtjYi0.wBay07v27dr0gkyMMwCE0GtQyeZzKWq', 'user');
+INSERT INTO `users` (`id`, `name`, `userName`, `email`, `password`, `admin`, `profile_pic`) VALUES
+(1, 'valami', 'valami', 'valami@hotmail.com', '$2y$10$pNVhxRayvnlgreujtjYi0.wBay07v27dr0gkyMMwCE0GtQyeZzKWq', 'user', 'default_user.png'),
+(2, 'Kovács Antal', 'thinkjan', 'kovacsan@gmail.com', 'password123', 'admin', 'default_user.png'),
+(3, 'Admin', 'admin', 'admin@bolt.hu', '$2y$10$w5C0UJMfwkrOUfuKnymCzumLIUJRuPIpYUQUTRAIbIJxJwvWA4Nv6', 'admin', 'default_user.png'),
+(4, 'Admin', 'admin', 'admin@bolt.hu', '$2y$10$RAFXEyDNtXTb2mbi8cINj.j6PnZqVh1QJBm3Pt8abT/ZrvIuiZVVi', 'user', 'prof_1769776487.png'),
+(5, 'vasarlo1', 'Béla', 'elsovas@hotmail.com', '$2y$10$c9ssHKwXXjWsxganFUwwAO3d96Ai2s4/h9RapOZUCWLn5/kE9e1Z6', 'user', 'default_user.png');
 
 --
 -- Indexek a kiírt táblákhoz
@@ -126,7 +141,8 @@ INSERT INTO `users` (`id`, `name`, `userName`, `email`, `password`, `role`) VALU
 -- A tábla indexei `favorites`
 --
 ALTER TABLE `favorites`
-  ADD PRIMARY KEY (`user_id`,`product_id`);
+  ADD PRIMARY KEY (`user_id`,`product_id`),
+  ADD UNIQUE KEY `unique_fav` (`user_id`,`product_id`);
 
 --
 -- A tábla indexei `firm`
@@ -171,19 +187,19 @@ ALTER TABLE `firm`
 -- AUTO_INCREMENT a táblához `products`
 --
 ALTER TABLE `products`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT a táblához `shopping_list`
 --
 ALTER TABLE `shopping_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Megkötések a kiírt táblákhoz
