@@ -1,0 +1,170 @@
+javascr
+
+allow read: if request.auth.token.role == "viewer" && resource.data.public == true;
+allow write: if request.auth.token.role == "uploader";
+
+sql
+
+CREATE POLICY viewer_policy 
+ON products
+FOR SELECT
+TO viewer
+USING (is_public = true);
+
+
+chatgdpt
+🔧 2. Belépett felhasználó szerepének ellenőrzése
+session_start();
+
+function is_role($role) {
+    return isset($_SESSION['role']) && $_SESSION['role'] === $role;
+}
+
+🔧 3. Adatok megjelenítése szerepkör szerint
+Viewer – csak a publikus mezőket láthatja
+function getDataForViewer($pdo) {
+    $stmt = $pdo->prepare("SELECT title, public_text FROM adatok WHERE is_public = 1");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+Uploader – minden mezőt lát
+function getDataForUploader($pdo) {
+    $stmt = $pdo->prepare("SELECT * FROM adatok");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+🔧 4. Ki mit kap?
+if (is_role('viewer')) {
+    $data = getDataForViewer($pdo);
+}
+
+if (is_role('uploader')) {
+    $data = getDataForUploader($pdo);
+}
+
+🔧 5. Feltöltési és módosítási jog korlátozása
+Feltöltéshez, módosításhoz:
+if (!is_role('uploader')) {
+    die("Nincs jogosultságod adatot feltölteni!");
+}
+
+// ... itt jön az adat feltöltése ...
+
+Viewer blokkolása:
+if (is_role('viewer')) {
+    die("Csak olvasási jogod van!");
+}
+
+🔐 Összefoglalás
+
+PHP-ben a jogosultság kezelés lépései:
+
+Szerepkör eltárolása (pl. users.role mező)
+
+Bejelentkezéskor a szerepkör bekerül a session-be
+
+Minden funkciónál ellenőrzöd:
+
+Uploader? → olvasás + írás + feltöltés
+
+Viewer? → csak olvasás (szűrt adat)
+
+Adatokat lekérdezéskor szűröd, hogy a viewer csak azt lássa, amit szabad
+
+Ha szeretnéd, készíthetek:
+
+komplett bejelentkezési rendszert szerepkörrel
+
+PDO-s adatbázis kapcsolatot
+
+teljes CRUD példát két jogosultsági szinttel
+
+Szeretnéd, hogy megírjam a teljes működő kódrendszert?
+
+Ezt mondtad:
+lehet, hogy bizonyos mezőket ne lásson a felhasználó?
+A ChatGPT ezt mondta:
+
+Igen, PHP-ben nagyon egyszerűen megoldható, hogy a felhasználó csak bizonyos mezőket lásson, míg az uploader minden adatot láthat.
+
+Az alapelv:
+👉 Backendben — már a lekérdezésnél vagy az API válasznál — kiszűröd a mezőket, amelyeket a "viewer" nem láthat.
+
+Az alábbiakban mutatok több működő példát.
+
+✅ 1. MEZŐ SZŰRÉSE MÁR A LEKÉRDEZÉSNÉL (SQL-ben)
+📌 Viewer csak a publikus mezőket láthatja:
+if ($userRole === 'viewer') {
+    $stmt = $pdo->prepare("
+        SELECT id, name, price, description_public AS description
+        FROM products
+        WHERE is_public = 1
+    ");
+}
+
+📌 Uploader mindent lát:
+if ($userRole === 'uploader') {
+    $stmt = $pdo->prepare("SELECT * FROM products");
+}
+
+
+Ez a legtisztább megoldás: a viewer sosem kapja meg a rejtett mezőket.
+
+✅ 2. MEZŐ SZŰRÉSE PHP-BEN (lekérdezés után)
+
+Ha a lekérdezés ugyanaz, de a válasz változik szerep szerint:
+
+$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if ($userRole === 'viewer') {
+    foreach ($data as &$row) {
+        unset($row['supplier_secret']);
+        unset($row['internal_notes']);
+    }
+}
+
+
+Így a viewer nem fogja megkapni a fenti mezőket.
+
+✅ 3. KÉSZ FUNKCIÓ: mezők automatikus szűrése
+function filterFieldsForViewer($row) {
+    $forbidden = ['supplier_secret', 'internal_notes', 'purchase_price'];
+
+    foreach ($forbidden as $f) {
+        if (isset($row[$f])) {
+            unset($row[$f]);
+        }
+    }
+
+    return $row;
+}
+
+
+Használat:
+
+if ($userRole === 'viewer') {
+    foreach ($data as &$row) {
+        $row = filterFieldsForViewer($row);
+    }
+}
+
+✅ 4. Dinamikus mező-megengedés (whitelist)
+
+Ha Viewer csak néhány mezőt láthat:
+
+$viewerAllowed = ['id', 'name', 'price', 'description'];
+
+function allowOnly($row, $fields) {
+    return array_intersect_key($row, array_flip($fields));
+}
+
+if ($userRole === 'viewer') {
+    foreach ($data as &$row) {
+        $row = allowOnly($row, $viewerAllowed);
+    }
+}
+
+
+Ez a legbiztonságosabb módszer, mert a viewer csak azt kapja meg, amit megengedsz, semmi mást.
