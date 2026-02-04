@@ -1,0 +1,4 @@
+admin@bolt.hu jelszó: admin123
+kovacsan@gmail.com jelszó: password123
+elsovas@hotmail.com jelszó: vas123
+haribo.og@gmail.com jelszó: HARIBO1

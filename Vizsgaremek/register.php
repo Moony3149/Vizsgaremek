@@ -9,21 +9,46 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $name = $_POST['name'];
 
-    // Ellenőrizzük, létezik-e már az email
-    $check_user = $conn->prepare("SELECT id FROM users WHERE email = ?");
-    $check_user->bind_param("s", $email);
-    $check_user->execute();
-    if ($check_user->get_result()->num_rows > 0) { $error = "Ez az email cím már foglalt!"; }
+    // 1. Ellenőrizzük az EMAIL-t mindkét táblában (ne lehessen ugyanazzal az e-maillel user és cég is)
+    $check_email_u = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $check_email_u->bind_param("s", $email);
+    $check_email_u->execute();
+    if ($check_email_u->get_result()->num_rows > 0) { $error = "Ez az email cím már foglalt!"; }
 
+    $check_email_f = $conn->prepare("SELECT id FROM firm WHERE email = ?");
+    $check_email_f->bind_param("s", $email);
+    $check_email_f->execute();
+    if ($check_email_f->get_result()->num_rows > 0) { $error = "Ez az email cím már foglalt!"; }
+
+    // 2. NÉV ELLENŐRZÉSE (Típus szerint)
     if (!$error) {
         if ($type === 'user') {
             $username = $_POST['username'];
-            // A role alapértelmezetten 'user'
+            // Megnézzük, létezik-e már ilyen felhasználónév
+            $check_name = $conn->prepare("SELECT id FROM users WHERE userName = ?");
+            $check_name->bind_param("s", $username);
+            $check_name->execute();
+            if ($check_name->get_result()->num_rows > 0) {
+                $error = "Ez a felhasználónév már foglalt!";
+            }
+        } else {
+            $brand = $_POST['brand_name'];
+            // Megnézzük, létezik-e már ilyen cégnév
+            $check_brand = $conn->prepare("SELECT id FROM firm WHERE brand_name = ?");
+            $check_brand->bind_param("s", $brand);
+            $check_brand->execute();
+            if ($check_brand->get_result()->num_rows > 0) {
+                $error = "Ez a cégnév már foglalt!";
+            }
+        }
+    }
+
+    // 3. MENTÉS, ha nincs hiba
+    if (!$error) {
+        if ($type === 'user') {
             $stmt = $conn->prepare("INSERT INTO users (name, userName, email, password, admin) VALUES (?, ?, ?, ?, 'user')");
             $stmt->bind_param("ssss", $name, $username, $email, $pass);
         } else {
-            $brand = $_POST['brand_name'];
-            // A cég alapból jóváhagyásra vár (approved = 0)
             $stmt = $conn->prepare("INSERT INTO firm (brand_name, worker_name, email, password, approved) VALUES (?, ?, ?, ?, 0)");
             $stmt->bind_param("ssss", $brand, $name, $email, $pass);
         }
@@ -48,7 +73,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         .back-home { position: absolute; top: 15px; left: 15px; text-decoration: none; color: #7f8c8d; font-size: 0.8rem; }
         h2 { text-align: center; color: #333; margin-bottom: 20px; }
         
-        /* Típus választó gombok */
         .type-select { display: flex; gap: 10px; margin-bottom: 20px; }
         .type-select label { flex: 1; text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 0.9rem; }
         input[type="radio"] { display: none; }
@@ -85,10 +109,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <input type="password" name="password" placeholder="Jelszó" required>
         
         <div id="u_fields">
-            <input type="text" name="username" placeholder="Felhasználónév">
+            <input type="text" name="username" placeholder="Felhasználónév" id="un_input">
         </div>
         <div id="f_fields" style="display:none;">
-            <input type="text" name="brand_name" placeholder="Cégnév / Márka">
+            <input type="text" name="brand_name" placeholder="Cégnév / Márka" id="bn_input">
         </div>
 
         <button type="submit" class="btn-reg">Fiók létrehozása</button>
@@ -102,9 +126,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <script>
     function toggleFields() {
         const isUser = document.getElementById('r_u').checked;
-        document.getElementById('u_fields').style.display = isUser ? 'block' : 'none';
-        document.getElementById('f_fields').style.display = isUser ? 'none' : 'block';
+        const uFields = document.getElementById('u_fields');
+        const fFields = document.getElementById('f_fields');
+        const unInput = document.getElementById('un_input');
+        const bnInput = document.getElementById('bn_input');
+
+        if (isUser) {
+            uFields.style.display = 'block';
+            fFields.style.display = 'none';
+            unInput.required = true;
+            bnInput.required = false;
+        } else {
+            uFields.style.display = 'none';
+            fFields.style.display = 'block';
+            unInput.required = false;
+            bnInput.required = true;
+        }
     }
+    // Oldalbetöltéskor is állítsuk be a required-et
+    window.onload = toggleFields;
 </script>
 
 </body>

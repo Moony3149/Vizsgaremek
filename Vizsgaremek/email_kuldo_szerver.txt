@@ -1,0 +1,36 @@
+ha egy felhasználó nem tudja a jelszavát akkor azt is meglehet oldani? vagy az már túl sok és nehézkes folyamat lenne? Ez nem feltétlen kell de ha nem túl sok és nehéz akkor az is lehetne a weboldalon
+
+Egyáltalán nem "túl sok", sőt, egy komoly weboldalnál ez alapkövetelmény! Viszont technikailag ez a legösszetettebb rész, mert két módon lehet megoldani:
+
+Az "igazi" mód (E-mail küldés): A rendszer küld egy egyedi linket a felhasználó email címére. Ez a legbiztonságosabb, de ehhez kell egy működő e-mail küldő szerver (pl. PHPMailer).
+
+Az "egyszerűsített" mód (Biztonsági kérdés): Regisztrációnál megad egy választ (pl. "Mi a kutyád neve?"), és ha elfelejti a jelszót, ezt kell beírnia.
+
+Mivel a legtöbb tárhelyen az e-mail küldés (PHP mail() függvény) korlátozott vagy bonyolult beállítani localhoston, nézzük meg a biztonságos, e-mailes logika alapjait, mert ez a profi út.
+
+Hogyan működik a folyamat?
+Igénylés: A user megadja az e-mail címét egy forgot_password.php oldalon.
+
+Token generálás: A rendszer készít egy egyszer használatos, titkos kódot (tokent) és elmenti az adatbázisba egy lejárati idővel (pl. 30 perc).
+
+Levélküldés: Kimegy egy e-mail: szupershop.hu/reset.php?token=xyz123.
+
+Visszaállítás: A user rákattint, az oldal ellenőrzi a tokent, és ha érvényes, hagyja beírni az új jelszót.
+
+Mennyire nehéz megcsinálni?
+Ha most vágnál bele, a következőket kellene hozzáadnod:
+
+Adatbázis tábla: Kell egy password_resets tábla (email, token, lejárati_idő).
+
+E-mail küldés: Be kell állítani egy SMTP szervert (pl. egy Gmail fiókot), hogy a weboldal tudjon levelet küldeni.
+
+2 új PHP fájl: Egy az igényléshez, egy a jelszó cseréjéhez.
+
+Megéri-e most?
+Ha még csak tanulsz: Érdemesebb előbb a profiloldalt és a termékkezelést tökéletesíteni.
+
+Ha élesben akarod használni: Akkor kötelező, de javaslom a PHPMailer könyvtár használatát, mert a sima PHP mail() sokszor a Spamba megy.
+
+Mit gondolsz? Belevágjunk az e-mailes visszaállítás alapjaiba (adatbázis és token generálás), vagy inkább maradjunk a profiloldal csinosításánál (például a jelszavak egyezését ellenőrző JavaScriptnél)?
+
+Ha szeretnéd, meg tudom mutatni a JavaScriptet, amivel elkerülhető, hogy a user elgépelje az új jelszavát!

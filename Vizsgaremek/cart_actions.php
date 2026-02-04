@@ -38,4 +38,14 @@ if (isset($_GET['add_to_fav'])) {
     $stmt->execute();
     header("Location: index.php?msg=Kedvencekhez adva!");
 }
+
+// 3. KEDVENC TÖRLÉSE (az index oldalról)
+if (isset($_GET['remove_fav'])) {
+    $p_id = (int)$_GET['remove_fav'];
+    $conn->query("DELETE FROM favorites WHERE user_id = $user_id AND product_id = $p_id");
+}
+
+// Visszairányítás oda, ahonnan jött (index-re vagy favorites-re)
+header("Location: " . $_SERVER['HTTP_REFERER']);
+exit;
 ?>

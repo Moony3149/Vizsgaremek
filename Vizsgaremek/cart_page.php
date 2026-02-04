@@ -56,17 +56,23 @@ $total = 0;
         ?>
         <tr>
             <td>
-                <img src="uploads/<?= $item['picture'] ?>" width="50" style="vertical-align: middle; margin-right: 10px;">
-                <?= $item['name'] ?>
+            <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="uploads/<?= $item['picture'] ?: 'no_image.jpg' ?>" width="50" style="border-radius: 5px;">
+            <span><?= htmlspecialchars($item['name']) ?></span>
+        </div>
             </td>
-            <td><?= number_format($item['product_price'], 0) ?> Ft</td>
+            <td><?= number_format($item['product_price'], 0, ',', ' ') ?> Ft</td>
             <td><?= $item['quantity'] ?> db</td>
-            <td><?= number_format($subtotal, 0) ?> Ft</td>
-            <td><a href="cart_page.php?remove=<?= $item['id'] ?>" class="remove-btn">✖ Törlés</a></td>
+            <td><strong><?= number_format($subtotal, 0, ',', ' ') ?> Ft</strong></td>
+            <td>
+                <a href="cart_page.php?remove=<?= $item['id'] ?>" class="remove-btn" style="color: #e74c3c;">
+                    <i class="fas fa-times-circle"></i>✖ Törlés
+                </a>
+            </td>
         </tr>
         <?php endwhile; ?>
     </table>
 
-    <div class="total">Végösszeg: <?= number_format($total, 0) ?> Ft</div>
+    <div class="total">Végösszeg: <?= number_format($total, 0, ',', ' ') ?> Ft</div>
 </body>
 </html>

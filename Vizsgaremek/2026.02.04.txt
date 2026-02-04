@@ -1,0 +1,23 @@
+megvan: adatbázis(kedvencek,cégek,felhasználók,termékek,bevásárló lista)
+fő oldal váza a bejelentkezés, regisztráció: cég és mezei user, bejelentkezésnél ki lehet válsztani hogy 
+melyik felületre akarsz belépni ha több profilod is van.
+Termék felvitele cégként
+Az admin jóváhagyja a cég regisztrációját és a termék feltöltését.
+A bejelentkezett vásárló eltudja menteni a kedvenc termékeit és bevásárló lista tudja helyezni.
+Mind a három felületen meglehet változtatni a profilképet, adatokat és a jelszót hogyha tudja a jelenlegit.
+
+Hiányosságok: 
+elfeledett jelszó küldése 
+kereső
+Szűrők.
+Oldalak kinézetének formázása.
+A termék részleteinek megtekintése a termékre való kattintással és a termék képének megjelenítése. ✔
+A képet nem tudjuk változtatni.
+A cég nem tudja a termék aktivitását és leírását változtatni.
+a termékek az id-je még nincs bekérve.
+csak egy bizonyos mennyiségű terméket töltsön be az oldalon
+fejléc resposive
+
+a cég és az admin fiókoknak ne legyen kedbencek funkció és bevásárló lista
+az ár és az egyéb funkciók egy vonalban legyenek
+ 

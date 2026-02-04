@@ -59,7 +59,7 @@ $pending_products = $conn->query("SELECT p.*, f.brand_name FROM products p LEFT 
 <div class="admin-container">
     <h1>
         <span><i class="fas fa-user-shield"></i> Rendszer Adminisztráció</span>
-        <a href="index.php" class="nav-link"><i class="fas fa-home"></i> Kijelentkezés</a>
+        <a href="index.php" class="nav-link"><i class="fas fa-home"></i> Vissza a főoldalra</a>
     </h1>
     
     <?php if($msg): ?>

@@ -21,6 +21,7 @@ $dolgozoNev = $firm_info['worker_name'];
 
 // --- TERMÉK HOZZÁADÁSA ---
 if (isset($_POST['add_product'])) {
+    $p_id = $_POST['ID'];
     $name = $_POST['name'];
     $description = $_POST['description'];
     $price = $_POST['price'];
@@ -36,9 +37,9 @@ if (isset($_POST['add_product'])) {
     }
 
     // SQL előkészítése (Fontos: az oszloprendnek egyeznie kell a bind_param-mal)
-    $stmt = $conn->prepare("INSERT INTO products (name, description, price, amount, weight, active, type, picture, firm_id, approved) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, 0)");
-    $stmt->bind_param("ssdiissi", $name, $description, $price, $amount, $weight, $type, $picture, $firm_id);    
-    
+    $stmt = $conn->prepare("INSERT INTO products (ID, name, description, price, amount, weight, active, type, picture, firm_id, approved) VALUES (1, ?, ?, ?, ?, ?, 1, ?, ?, ?, 0)");
+    $stmt->bind_param("issdiissi", $p_id, $name, $description, $price, $amount, $weight, $type, $picture, $firm_id);
+
     if ($stmt->execute()) {
         $msg = "Termék sikeresen hozzáadva és jóváhagyásra vár!";
     } else {
@@ -74,7 +75,7 @@ $result = $stmt_list->get_result();
     <meta charset="UTF-8">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #99bff8ff; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1750px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
         .add-box { background: #f8f9fa; border: 1px solid #e1e4e8; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -107,6 +108,7 @@ $result = $stmt_list->get_result();
         <h3>➕ Új termék hozzáadása</h3>
         <form method="POST" enctype="multipart/form-data">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <input type="number" name="ID" placeholder="Termék azonosító (ID)" required>
                 <input type="text" name="name" placeholder="Termék neve" required>
                 <input type="number" step="0.01" name="price" placeholder="Ár (Ft)" required>
                 <input type="number" name="amount" placeholder="Készlet (db)" required>
@@ -135,10 +137,13 @@ $result = $stmt_list->get_result();
     <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Név</th>
                 <th>Ár (Ft)</th>
                 <th>Súly (g)</th>
                 <th>Készlet</th>
+                <th>Leírás</th>
+                <th>Kép</th>
                 <th>Aktív</th>
                 <th>Státusz</th>
                 <th>Művelet</th>
@@ -148,10 +153,13 @@ $result = $stmt_list->get_result();
             <?php while($row = $result->fetch_assoc()): ?>
             <tr>
                 <form method="POST">
+                    <td><input type="number" name="ID" value="<?= $row['ID'] ?>" style="width: 80px;"></td>
                     <td><input type="text" name="name" value="<?= htmlspecialchars($row['name']) ?>" style="width: 100%;"></td>
                     <td><input type="number" step="0.01" name="price" value="<?= $row['price'] ?>" style="width: 80px;"></td>
                     <td><input type="number" name="weight" value="<?= $row['weight'] ?>" style="width: 70px;"></td>
                     <td><input type="number" name="amount" value="<?= $row['amount'] ?>" style="width: 60px;"></td>
+                    <td><input type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="width: 100%;"></td>
+                    <td><input type="file" name="picture" accept="image/*"></td>
                     <td>
                         <input type="checkbox" name="active" <?= $row['active'] ? 'checked' : '' ?>>
                     </td>
