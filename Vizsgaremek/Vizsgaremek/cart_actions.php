@@ -12,7 +12,6 @@ $user_id = $_SESSION['user_id'];
 // --- KOSÁRBA HELYEZÉS ---
 if (isset($_GET['add_to_cart'])) {
     $p_id = (int)$_GET['add_to_cart'];
-    $price = (float)$_GET['price'];
 
     // Megnézzük, benne van-e már
     $check = $conn->prepare("SELECT id FROM shopping_list WHERE user_id = ? AND product_id = ?");
@@ -29,6 +28,39 @@ if (isset($_GET['add_to_cart'])) {
     }
     header("Location: index.php?msg=Kosárba téve!");
 }
+
+// --- DARABSZÁM MÓDOSÍTÁSA (Ez hiányzott!) ---
+if (isset($_GET['update_qty']) && isset($_GET['id'])) {
+    $item_id = (int)$_GET['id'];
+    $action = $_GET['update_qty'];
+
+    if ($action === 'plus') {
+        $stmt = $conn->prepare("UPDATE shopping_list SET quantity = quantity + 1 WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $item_id, $user_id);
+        $stmt->execute();
+    } 
+    elseif ($action === 'minus') {
+        // Megnézzük, mennyi van benne most
+        $check = $conn->prepare("SELECT quantity FROM shopping_list WHERE id = ? AND user_id = ?");
+        $check->bind_param("ii", $item_id, $user_id);
+        $check->execute();
+        $res = $check->get_result()->fetch_assoc();
+
+        if ($res && $res['quantity'] > 1) {
+            $stmt = $conn->prepare("UPDATE shopping_list SET quantity = quantity - 1 WHERE id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $item_id, $user_id);
+            $stmt->execute();
+        } else {
+            // Ha 1-nél akarjuk csökkenteni, töröljük ki
+            $stmt = $conn->prepare("DELETE FROM shopping_list WHERE id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $item_id, $user_id);
+            $stmt->execute();
+        }
+    }
+    header("Location: cart_page.php");
+    exit;
+}
+
 
 // --- KEDVENCEKHEZ ADÁS ---
 if (isset($_GET['add_to_fav'])) {

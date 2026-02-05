@@ -36,6 +36,7 @@ $msg = $_GET['msg'] ?? null;
 $search_query = "";
 if (isset($_GET['search'])) {
     $search_query = $_GET['search'];
+    $selected_cat = $_GET['cat'] ?? '';
     $sql = "SELECT p.*, f.brand_name,
         (SELECT COUNT(*) FROM favorites WHERE user_id = $user_id AND product_id = p.ID) as is_fav,
         (SELECT COUNT(*) FROM shopping_list WHERE user_id = $user_id AND product_id = p.ID) as is_in_cart
@@ -189,7 +190,7 @@ if (isset($_GET['search'])) {
             background: white; 
             border-radius: 15px; 
             padding: 20px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
             text-align: center;
             display: flex; 
             flex-direction: column; 
@@ -201,7 +202,7 @@ if (isset($_GET['search'])) {
             gap: 25px; 
             margin-top: 10px; 
             padding-top: 10px; 
-
+            border-top: 2px solid #eeeeee6b;
         }
         .spacer { 
             flex-grow: 1; 
@@ -246,7 +247,7 @@ if (isset($_GET['search'])) {
     <div class="search-container">
         <form action="index.php" method="GET" class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" name="search" placeholder="Keresés termékek között..." value="<?= htmlspecialchars($search_query) ?>">
+            <input type="text" name="search" placeholder="Keresés a termékek között..." value="<?= htmlspecialchars($search_query) ?>">
         </form>
     </div>
 
@@ -275,6 +276,9 @@ if (isset($_GET['search'])) {
     <?php endif; ?>
 </nav>
 </header>
+
+
+
 <div class="container">
     <?php if ($result->num_rows > 0): ?>
         <?php while($row = $result->fetch_assoc()): ?>
@@ -309,7 +313,7 @@ if (isset($_GET['search'])) {
                 <i class="fa-solid fa-cart-shopping" style="color: #27ae60; font-size: 1.4rem;"></i>
             </a>
         <?php else: ?>
-            <a href="cart_actions.php?add_to_cart=<?= $row['ID'] ?>&price=<?= $row['price'] ?>" title="Kosárba teszem">
+            <a href="cart_actions.php?add_to_cart=<?= $row['ID']?>?>" title="Kosárba teszem">
                 <i class="fa-solid fa-cart-plus" style="color: #ccc; font-size: 1.4rem;"></i>
             </a>
         <?php endif; ?>
