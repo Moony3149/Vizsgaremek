@@ -138,6 +138,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <form method="POST">
             <input type="email" name="email" placeholder="Email cím" required>
             <input type="password" name="password" placeholder="Jelszó" required>
+            
+            <div style="text-align: right; margin-top: -5px; margin-bottom: 15px;">
+                <a href="forgot_password.php" style="font-size: 0.8rem; color: #3498db; text-decoration: none;">Elfelejtetted a jelszavad?</a>
+            </div>
+
             <button type="submit" class="btn-main">Bejelentkezés</button>
         </form>
 

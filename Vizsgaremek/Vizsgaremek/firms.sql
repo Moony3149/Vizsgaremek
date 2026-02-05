@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Feb 04. 15:26
+-- Létrehozás ideje: 2026. Feb 05. 20:47
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -32,13 +32,6 @@ CREATE TABLE `favorites` (
   `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- A tábla adatainak kiíratása `favorites`
---
-
-INSERT INTO `favorites` (`user_id`, `product_id`) VALUES
-(3, 3);
-
 -- --------------------------------------------------------
 
 --
@@ -65,6 +58,28 @@ INSERT INTO `firm` (`ID`, `brand_name`, `worker_name`, `email`, `password`, `app
 -- --------------------------------------------------------
 
 --
+-- Tábla szerkezet ehhez a táblához `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` int(11) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `password_resets`
+--
+
+INSERT INTO `password_resets` (`id`, `email`, `token`, `expires_at`, `created_at`) VALUES
+(1, 'elsovas@hotmail.com', '9ede4119c09d18057a5bf7093af329558808c8c7afb6ceee851db4a6d70226ee', '2026-02-05 20:20:26', '2026-02-05 18:50:26'),
+(2, 'elsovas@hotmail.com', '36eef65e4adeef88338561321208de2f15b58066467c843c1a5f1ecfce1b28b7', '2026-02-05 20:24:28', '2026-02-05 18:54:28');
+
+-- --------------------------------------------------------
+
+--
 -- Tábla szerkezet ehhez a táblához `products`
 --
 
@@ -87,10 +102,10 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`ID`, `name`, `description`, `price`, `weight`, `amount`, `active`, `type`, `picture`, `firm_id`, `approved`) VALUES
-(1, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 499.00, 100, 3425, 1, 'Alapvető élelmiszerek', 'letoltes.jpg', 1, 1),
-(2, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 379.00, 80, 4534, 1, 'Alapvető élelmiszerek', 'letoltes.jpg', 1, 1),
-(3, 'HARIBO Starmix', 'hhhhhhh', 899.00, 250, 7, 1, 'Alapvető élelmiszerek', '1770198067_Haribo-Starmix-Minis-250g.jpg', 1, 1),
-(4, 'HARIBO Rainbow Frogs', '..........', 499.00, 142, 5, 1, 'Alapvető élelmiszerek', '1770198732_Harbio_frogs.jpg', 1, 1);
+(1, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 499.00, 100, 3432, 1, 'Alapvető élelmiszerek', 'letoltes.jpg', 1, 1),
+(2, 'Haribo Goldbären gyümölcsízű gumicukorka', 'A Goldbären-t mindenki ismeri – nem véletlenül. Hiszen ez az eredeti és összetéveszthetetlen gumicukorka 1922 óta okoz örömet kicsi és nagy, fiatalabb vagy idősebb rajongók számára. A hat színpompás medvécske – a legfinomabb gyümölcsízekben az ananásztól ', 499.00, 100, 4515, 1, 'Alapvető élelmiszerek', 'letoltes.jpg', 1, 1),
+(3, 'Haribo Starmix', 'jjjjjjjjjjjjjjjjj', 890.00, 250, 3, 1, 'Alapvető élelmiszerek', '1770310323_1770198067_Haribo-Starmix-Minis-250g.jpg', 1, 1),
+(4, 'Haribo Rainbow Frogs ', 'hhhhhhhhhh', 499.00, 125, 32, 1, 'Alapvető élelmiszerek', '1770310794_1770198732_Harbio_frogs.jpg', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -105,6 +120,14 @@ CREATE TABLE `shopping_list` (
   `product_price` decimal(10,2) NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `shopping_list`
+--
+
+INSERT INTO `shopping_list` (`id`, `user_id`, `product_id`, `product_price`, `quantity`) VALUES
+(7, 3, 3, 890.00, 1),
+(8, 4, 2, 499.00, 1);
 
 -- --------------------------------------------------------
 
@@ -128,10 +151,11 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `userName`, `email`, `password`, `admin`, `profile_pic`) VALUES
 (1, 'valami', 'valami', 'valami@hotmail.com', '$2y$10$pNVhxRayvnlgreujtjYi0.wBay07v27dr0gkyMMwCE0GtQyeZzKWq', 'user', 'default_user.png'),
-(2, 'Kovács Antal', 'thinkjan', 'kovacsan@gmail.com', 'password123', 'admin', 'default_user.png'),
+(2, 'Kovács Antal', 'thinkjan', 'kovacsan@gmail.com', 'password123', 'user', 'default_user.png'),
 (3, 'Admin', 'admin', 'admin@bolt.hu', '$2y$10$w5C0UJMfwkrOUfuKnymCzumLIUJRuPIpYUQUTRAIbIJxJwvWA4Nv6', 'admin', 'default_user.png'),
 (4, 'Admin', 'admin', 'admin@bolt.hu', '$2y$10$RAFXEyDNtXTb2mbi8cINj.j6PnZqVh1QJBm3Pt8abT/ZrvIuiZVVi', 'user', 'prof_1769776487.png'),
-(5, 'vasarlo1', 'Béla', 'elsovas@hotmail.com', '$2y$10$c9ssHKwXXjWsxganFUwwAO3d96Ai2s4/h9RapOZUCWLn5/kE9e1Z6', 'user', 'default_user.png');
+(5, 'vasarlo1', 'Béla', 'elsovas@hotmail.com', '$2y$10$c9ssHKwXXjWsxganFUwwAO3d96Ai2s4/h9RapOZUCWLn5/kE9e1Z6', 'user', 'prof_1770143785.jpg'),
+(7, 'emailtest', 'email', 'gergo.mokan@gmail.com', '$2y$10$VdVK0hd16IWeM0U.qqt6leHiTBg2aJoGQ3mgsU28yQWm0ez2LwCva', 'user', 'default_user.png');
 
 --
 -- Indexek a kiírt táblákhoz
@@ -149,6 +173,12 @@ ALTER TABLE `favorites`
 --
 ALTER TABLE `firm`
   ADD PRIMARY KEY (`ID`);
+
+--
+-- A tábla indexei `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- A tábla indexei `products`
@@ -184,6 +214,12 @@ ALTER TABLE `firm`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT a táblához `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
 -- AUTO_INCREMENT a táblához `products`
 --
 ALTER TABLE `products`
@@ -193,13 +229,13 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT a táblához `shopping_list`
 --
 ALTER TABLE `shopping_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Megkötések a kiírt táblákhoz
