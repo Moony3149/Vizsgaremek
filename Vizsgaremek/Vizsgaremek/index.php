@@ -124,11 +124,29 @@ if (isset($_GET['search'])) {
             color: #fff;
         }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; }
+        .container { 
+            max-width: 1200px; 
+            margin: 30px auto; 
+            padding: 0 20px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+            gap: 25px; 
+        }
+
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 20px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%;
+        }
         .card img { width: 100%; height: 180px; object-fit: contain; }
-        .price-tag { font-size: 1.3rem; font-weight: bold; color: var(--success); margin: 10px 0; }
+        .price-tag { font-size: 1.3rem; font-weight: bold; color: var(--success); margin: 10px 0 ; margin-top: auto; }
         .btn-cart { display: block; background: var(--primary); color: white; padding: 10px; border-radius: 8px; text-decoration: none; margin-top: 15px; }
+        .brand_name { margin-top: auto; }
     </style>
 </head>
 <body>
@@ -186,7 +204,7 @@ if (isset($_GET['search'])) {
         <div class="price-tag"><?= number_format($row['price'], 0, ',', ' ') ?> Ft</div>
     </div>
 
-    <div class="card-actions" style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+    <div class="card-actions" style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; margin-top: auto;">
         
         <?php if ($row['is_fav'] > 0): ?>
             <a href="cart_actions.php?remove_fav=<?= $row['ID'] ?>" title="Eltávolítás a kedvencekből">
