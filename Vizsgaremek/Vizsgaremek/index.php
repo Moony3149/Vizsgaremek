@@ -30,33 +30,32 @@ if ($user_id) {
     }
 }
 
-$msg = $_GET['msg'] ?? null;
+    $msg = $_GET['msg'] ?? null;
 
-// Keresés logika
-$search_query = "";
-if (isset($_GET['search'])) {
-    $search_query = $_GET['search'];
+    $search_query = $_GET['search'] ?? '';
     $selected_cat = $_GET['cat'] ?? '';
+
     $sql = "SELECT p.*, f.brand_name,
         (SELECT COUNT(*) FROM favorites WHERE user_id = $user_id AND product_id = p.ID) as is_fav,
         (SELECT COUNT(*) FROM shopping_list WHERE user_id = $user_id AND product_id = p.ID) as is_in_cart
         FROM products p
         LEFT JOIN firm f ON p.firm_id = f.ID
-            WHERE p.active = 1 AND p.approved = 1 AND (p.name LIKE ? OR f.brand_name LIKE ?)";
+        WHERE p.active = 1 AND p.approved = 1";
+    
+    if ($selected_cat !== '') {
+    $sql .= " AND p.type = '" . $conn->real_escape_string($selected_cat) . "'";
+    }
+    if ($search_query !== '') {
+    $sql .= " AND (p.name LIKE ? OR f.brand_name LIKE ?)";
     $stmt = $conn->prepare($sql);
     $term = "%$search_query%";
     $stmt->bind_param("ss", $term, $term);
     $stmt->execute();
     $result = $stmt->get_result();
-} else {
-    $sql = "SELECT p.*, f.brand_name,
-            (SELECT COUNT(*) FROM favorites WHERE user_id = $user_id AND product_id = p.ID) as is_fav,
-            (SELECT COUNT(*) FROM shopping_list WHERE user_id = $user_id AND product_id = p.ID) as is_in_cart
-            FROM products p 
-            LEFT JOIN firm f ON p.firm_id = f.ID 
-            WHERE p.active = 1 AND p.approved = 1";
+    }else {
     $result = $conn->query($sql);
-}
+    }
+
 ?>
 <!DOCTYPE html>
 <html lang="hu">
@@ -245,9 +244,29 @@ if (isset($_GET['search'])) {
     </div>
 
     <div class="search-container">
-        <form action="index.php" method="GET" class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" name="search" placeholder="Keresés a termékek között..." value="<?= htmlspecialchars($search_query) ?>">
+        <form action="index.php" method="GET" style="display: flex; gap: 80px; width: 100%; max-width: 600px;">
+            <div class="search-box" style="flex-grow: 1;">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" placeholder="Keresés a termékek között..." value="<?= htmlspecialchars($search_query) ?>">
+            </div>
+                
+            <div style="position: relative; min-width: 50px;">
+            <label for="cat-select" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: white; cursor: pointer; z-index: 10;">
+                <i class="fas fa-bars"></i>
+            </label>
+            <select name="cat" id="cat-select" onchange="this.form.submit()" 
+                style="padding: 10px 15px 10px 40px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2); 
+                       background: rgba(255,255,255,0.1); color: white; outline: none; cursor: pointer; appearance: none; width: 150px; font-size: 0.85rem;">
+                <option value="" style="color: black;">Kategóriák</option>
+                    <?php
+                    $categories = ['Zöldség és gyümölcs', 'Tejtermék- tojás', 'Pékáru', 'Húsáru', 'Mélyhűtött', 'Alapvető élelmiszerek', 'Italok', 'Speciális', 'Háztartás', 'Drogéria', 'Kisállat', 'Otthon-hobbi'];
+                    foreach ($categories as $cat): ?>
+                <option value="<?= $cat ?>" <?= $selected_cat == $cat ? 'selected' : '' ?> style="color: black;">
+                    <?= $cat ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+            </div>
         </form>
     </div>
 
@@ -277,7 +296,9 @@ if (isset($_GET['search'])) {
 </nav>
 </header>
 
-
+<?php
+$cat_res = $conn->query("SELECT 'type' FROM products ORDER BY name ASC");
+?>
 
 <div class="container">
     <?php if ($result->num_rows > 0): ?>
