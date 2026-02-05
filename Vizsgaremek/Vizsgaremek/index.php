@@ -65,9 +65,19 @@ if (isset($_GET['search'])) {
     <title>SzuperShop - Főoldal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; }
-        
+        :root { 
+            --primary: #2c3e50; 
+            --accent: #3498db; 
+            --success: #27ae60; 
+            --danger: #e74c3c; 
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #f8f9fa; 
+            margin: 0; 
+        }
+
         header { 
             background: var(--primary); 
             color: white; 
@@ -81,10 +91,26 @@ if (isset($_GET['search'])) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
         }
 
-        .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; min-width: 150px; }
-        
-        .search-container { flex-grow: 1; display: flex; justify-content: center; padding: 0 20px; }
-        .search-box { position: relative; width: 100%; max-width: 500px; }
+        .logo { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            min-width: 150px; 
+        }
+
+        .search-container { 
+            flex-grow: 1; 
+            display: flex; 
+            justify-content: center; 
+            padding: 0 20px; 
+        }
+        .search-box { 
+            position: relative; 
+            width: 100%; 
+            max-width: 500px; 
+        }
         .search-box input { 
             width: 100%; 
             padding: 10px 15px 10px 40px; 
@@ -93,17 +119,43 @@ if (isset($_GET['search'])) {
             outline: none; 
             font-size: 0.9rem;
         }
-        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #7f8c8d; }
+        .search-box i { 
+            position: absolute; 
+            left: 15px; top: 50%; 
+            transform: translateY(-50%); 
+            color: #7f8c8d; 
+        }
 
-        nav { display: flex; gap: 20px; align-items: center; min-width: 150px; justify-content: flex-end; }
-        nav a { color: white; text-decoration: none; font-size: 1.2rem; transition: 0.3s; position: relative; display: flex; flex-direction: column; align-items: center; }
+        nav { 
+            display: flex; 
+            gap: 20px; 
+            align-items: center; 
+            min-width: 150px; 
+            justify-content: flex-end; 
+        }
+        nav a { 
+            color: white; 
+            text-decoration: none; 
+            font-size: 1.2rem; 
+            transition: 0.3s; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
         nav a:hover { color: var(--accent); }
-        nav a span { font-size: 0.7rem; display: block; text-align: center; margin-top: 2px; }
+        nav a span { 
+            font-size: 0.7rem; 
+            display: block; 
+            text-align: center; 
+            margin-top: 2px; 
+        }
 
         /* Profil rész a nav-ban */
         .user-profile {
             display: flex;
             align-items: center;
+            flex-direction: row;
             gap: 10px;
             background: rgba(255,255,255,0.1);
             padding: 5px 15px 5px 5px;
@@ -138,15 +190,50 @@ if (isset($_GET['search'])) {
             border-radius: 15px; 
             padding: 20px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-            text-align: center; 
+            text-align: center;
             display: flex; 
             flex-direction: column; 
-            height: 100%;
+            height: 90%;
         }
-        .card img { width: 100%; height: 180px; object-fit: contain; }
-        .price-tag { font-size: 1.3rem; font-weight: bold; color: var(--success); margin: 10px 0 ; margin-top: auto; }
-        .btn-cart { display: block; background: var(--primary); color: white; padding: 10px; border-radius: 8px; text-decoration: none; margin-top: 15px; }
-        .brand_name { margin-top: auto; }
+        .card-actions { 
+            display: flex; 
+            justify-content: center; 
+            gap: 25px; 
+            margin-top: 10px; 
+            padding-top: 10px; 
+
+        }
+        .spacer { 
+            flex-grow: 1; 
+        }
+        .card-footer {
+            margin-top: auto;
+            padding-top: 15px;
+        }
+        .card img { 
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+        }
+        .price-tag { 
+            font-size: 1.3rem; 
+            font-weight: bold; 
+            color: var(--success); 
+            margin: 10px 0 ; 
+            margin-top: auto; 
+        }
+        .btn-cart { 
+            display: block; 
+            background: var(--primary); 
+            color: white; 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            margin-top: 15px; 
+        }
+        .brand_name { 
+            margin-top: auto; 
+        }
     </style>
 </head>
 <body>
@@ -165,7 +252,7 @@ if (isset($_GET['search'])) {
 
     <nav>
     <?php if($user_id || $firm_id): ?>
-        <a href="profile.php" class="user-profile" title="Profil szerkesztése" style="flex-direction: row; gap: 10px;">
+        <a href="profile.php" class="user-profile" title="Profil szerkesztése">
             <img src="uploads/profiles/<?= $profile_pic ?>" class="nav-profile-img" alt="Profil">
             <span class="user-name" style="display: inline; font-size: 0.9rem;"><?= htmlspecialchars($display_name) ?></span>
         </a>
@@ -199,13 +286,14 @@ if (isset($_GET['search'])) {
         <h4><?= htmlspecialchars($row['name']) ?></h4>
     </a>
 
-    <div class="card-details">
+    <div class="spacer"></div>
+
+    <div class="card-footer">
         <p class="brand-name"><?= htmlspecialchars($row['brand_name'] ?: 'Saját termék') ?></p>
         <div class="price-tag"><?= number_format($row['price'], 0, ',', ' ') ?> Ft</div>
     </div>
 
-    <div class="card-actions" style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; margin-top: auto;">
-        
+    <div class="card-actions">
         <?php if ($row['is_fav'] > 0): ?>
             <a href="cart_actions.php?remove_fav=<?= $row['ID'] ?>" title="Eltávolítás a kedvencekből">
                 <i class="fa-solid fa-heart" style="color: #e74c3c; font-size: 1.4rem;"></i>

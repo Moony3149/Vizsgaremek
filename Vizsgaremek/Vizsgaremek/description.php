@@ -140,7 +140,7 @@ if (!$product) {
                 <i class="fas fa-cart-plus"></i> Kosárba teszem
             </a>
         <?php elseif(!$role): ?>
-            <p style="color: red;">Vásárláshoz kérjük <a href="login.php">jelentkezzen be</a>!</p>
+            <p style="color: red;">Kedvenc termékek jelöléséhez kérjük <a href="login.php">jelentkezzen be</a>!</p>
         <?php endif; ?>
     </div>
 </div>
