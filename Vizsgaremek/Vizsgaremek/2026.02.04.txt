@@ -7,17 +7,20 @@ A bejelentkezett vásárló eltudja menteni a kedvenc termékeit és bevásárl�
 Mind a három felületen meglehet változtatni a profilképet, adatokat és a jelszót hogyha tudja a jelenlegit.
 
 Hiányosságok: 
-elfeledett jelszó küldése 
-kereső
-Szűrők.
-Oldalak kinézetének formázása.
+elfeledett jelszó küldése ✔
+kereső ✔
+Szűrők. ✔
 A termék részleteinek megtekintése a termékre való kattintással és a termék képének megjelenítése. ✔
-A képet nem tudjuk változtatni.
-A cég nem tudja a termék aktivitását és leírását változtatni.
-a termékek az id-je még nincs bekérve.
-csak egy bizonyos mennyiségű terméket töltsön be az oldalon
+A képet nem tudjuk változtatni. ✔
+A cég nem tudja a termék aktivitását és leírását változtatni. ✔
+a termékek az id-je még nincs bekérve. ✔
+csak egy bizonyos mennyiségű terméket töltsön be az oldalon ✔
+
+
+Oldalak kinézetének formázása.
 fejléc resposive
 
 a cég és az admin fiókoknak ne legyen kedbencek funkció és bevásárló lista
 az ár és az egyéb funkciók egy vonalban legyenek
  
+
