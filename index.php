@@ -9,6 +9,15 @@ $firm_id = $_SESSION['firm_id'] ?? null;
 // Név ÉS Profilkép lekérése az adatbázisból
 $display_name = "";
 $profile_pic = "default_user.png"; 
+$bodyClass = '';
+
+if (isset($_SESSION['admin']) && $_SESSION['admin'] === 'admin') {
+    $bodyClass = 'role-admin'; // Admin -> Sötét
+} elseif (isset($_SESSION['firm_id'])) {
+    $bodyClass = 'role-firm';  // Cég -> Kék
+} else {
+    $bodyClass = 'role-user';  // Mezei user / Vendég -> Alap
+}
 
 if ($user_id) {
     $stmt_name = $conn->prepare("SELECT username, profile_pic FROM users WHERE ID = ?");
@@ -60,6 +69,18 @@ if ($user_id) {
     $count_res = $conn->query($count_sql);
     $totalRows = $count_res->fetch_assoc()['total'];
     $totalPages = ceil($totalRows / $limit);
+
+    // Jóváhagyásra váró dolgok számolása az Adminnak
+    $pending_count = 0;
+    if (isset($_SESSION['admin']) && $_SESSION['admin'] === 'admin') {
+        $q_firms = $conn->query("SELECT COUNT(*) as total FROM firm WHERE approved = 0");
+        $q_prods = $conn->query("SELECT COUNT(*) as total FROM products WHERE approved = 0");
+        
+        $f_count = $q_firms->fetch_assoc()['total'] ?? 0;
+        $p_count = $q_prods->fetch_assoc()['total'] ?? 0;
+        
+        $pending_count = $f_count + $p_count;
+    }
 
     // Végleges SQL (LIMIT és OFFSET a legvégén!)
     $sql = "SELECT p.*, f.brand_name,
@@ -128,12 +149,21 @@ if ($user_id) {
             gap: 20px; 
         }
 
-        .header-bottom { 
-            display: flex; 
-            align-items: center; 
-            gap: 30px; 
+        .header-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Elosztja a logót, keresőt és az ikonokat */
+            gap: 20px;
         }
 
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
         /* --- LOGO --- */
         .logo { 
@@ -209,7 +239,6 @@ if ($user_id) {
             color: white; 
         }
 
-
         /* --- NAVIGÁCIÓS IKONOK --- */
         .main-nav { 
             display: flex; 
@@ -242,6 +271,31 @@ if ($user_id) {
             transform: translateY(-3px);
         }
 
+        .nav-icons-group {
+            display: flex;
+            align-items: center;
+            gap: 25px; /* Távolság az ikonok között */
+        }
+
+        /* Profilkép kerete - ez hiányzott */
+        .nav-img-wrapper {
+            width: 32px;  /* Pontos méret */
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-blue);
+            overflow: hidden; /* Hogy a kép ne lógjon ki a körből */
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .nav-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Kitölti a kört torzítás nélkül */
+        }
 
         /* --- FELHASZNÁLÓI INFÓ --- */
         .user-pill { 
@@ -322,15 +376,43 @@ if ($user_id) {
             transition: transform 0.5s ease; /* Finom zoom effekt */
         }
 
+        .icon-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .icon-nav-link i {
+            font-size: 1.6rem; /* Hasonló méret, mint a többi ikonod */
+            margin-bottom: 4px;
+        }
+
+        .icon-nav-link span {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
         .card-content { 
             flex-grow: 1; 
+            min-height: 80px;      /* Biztosítja, hogy a szövegnek mindig legyen helye */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
         .card-content h4 { 
             margin: 0; 
             font-size: 1.2rem;
             color: var(--dark-blue);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .brand-text { 
@@ -403,23 +485,85 @@ if ($user_id) {
             background: var(--dark-blue); 
             color: white; 
         }
+        /* --- ALAP STÍLUS (USER) --- */
+        body.role-user {
+            background: #f0f2f5;
+            color: #333;
+        }
+
+        /* --- CÉGES STÍLUS (KÉK) --- */
+        body.role-firm {
+            background: #e3f2fd; /* Világoskék háttér */
+        }
+        body.role-firm .navbar, body.role-firm .header {
+            background: #1976d2 !important; /* Céges kék fejléc */
+        }
+
+        /* --- ADMIN STÍLUS (SÖTÉT) --- */
+        body.role-admin {
+            background: #121212; /* Éjfekete háttér */
+            color: #e0e0e0;
+        }
+        body.role-admin .navbar, body.role-admin .header {
+            background: #000000 !important; /* Fekete fejléc */
+            border-bottom: 2px solid #00d2ff; /* Egy kis neon kék csík */
+        }
+        body.role-admin .cart-item, body.role-admin .login-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: white;
+        }
+        .nav-profile-img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-blue);
+            object-fit: cover;
+            margin-bottom: 4px;
+        }
+
+        .icon-nav-link:hover {
+            color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .logout-icon:hover {
+            color: var(--danger-red);
+        }
+        .approval-link {
+            color: var(--success-green) !important;
+            text-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+        }
+
+        .approval-link:hover {
+            color: white !important;
+            text-shadow: 0 0 15px var(--success-green);
+        }
+
+        /* Az Admin pajzs maradjon kék */
+        .admin-nav-link {
+            color: var(--accent-blue) !important;
+        }
+
+        /* Badge (számláló) pozícionálása a Jóváhagyásokon */
+        .approval-link .badge {
+            position: absolute;
+            top: -2px;
+            right: 5px;
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 2px solid var(--dark-blue);
+        }
     </style>
 
 </head>
-<body>
+<body class="<?= $bodyClass ?>">
 
 <header>
-    <div class="header-top">
-        <?php if($user_id || $firm_id): ?>
-            <div class="user-pill">
-                <img src="uploads/profiles/<?= $profile_pic ?>" alt="P">
-                <span style="font-weight: bold; font-size: 0.9rem;"><?= htmlspecialchars($display_name) ?></span>
-            </div>
-            <a href="logout.php" class="logout-link"><i class="fas fa-sign-out-alt"></i> Kijelentkezés</a>
-        <?php endif; ?>
-    </div>
-
-    <div class="header-bottom">
+    <div class="header-content">
         <a href="index.php" class="logo">Szuper<span>Shop</span></a>
 
         <form action="index.php" method="GET" class="filter-form">
@@ -429,7 +573,6 @@ if ($user_id) {
             </div>
 
             <div class="category-box">
-                <span class="cat-label">Kategóriák</span>
                 <select name="cat" onchange="this.form.submit()">
                     <option value="">Összes kategória</option>
                     <?php foreach ($categories as $cat): ?>
@@ -441,11 +584,58 @@ if ($user_id) {
             </div>
         </form>
 
-        <nav class="main-nav">
-            <a href="favorites.php"><i class="far fa-heart"></i><span>Kedvencek</span></a>
-            <a href="cart_page.php"><i class="fas fa-shopping-cart"></i><span>Kosár</span></a>
-            <a href="login.php"><i class="far fa-user"></i><span>Bejelentkezés</span></a>
-        </nav>
+        <div class="nav-icons-group">
+            <?php if ($user_id || $firm_id): ?>
+                
+                <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === 'admin'): ?>
+                    <a href="admin.php" class="icon-nav-link admin-nav-link">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Admin</span>
+                    </a>
+
+                    <a href="admin.php" class="icon-nav-link approval-link">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Jóváhagyások</span>
+                        <?php if($pending_count > 0): ?>
+                            <span class="badge"><?= $pending_count ?></span>
+                        <?php endif; ?>
+                    </a>
+
+                <?php else: ?>
+                    <a href="favorites.php" class="icon-nav-link">
+                        <i class="fas fa-heart"></i>
+                        <span>Kedvencek</span>
+                    </a>
+
+                    <a href="cart_page.php" class="icon-nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Kosár</span>
+                    </a>
+                <?php endif; ?>
+
+                <a href="profile.php" class="icon-nav-link">
+                    <div class="nav-img-wrapper">
+                        <img src="uploads/profiles/<?= $profile_pic ?>" alt="P">
+                    </div>
+                    <span><?= htmlspecialchars($display_name) ?></span>
+                </a>
+
+                <a href="logout.php" class="icon-nav-link logout-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Kilépés</span>
+                </a>
+
+            <?php else: ?>
+                <a href="login.php" class="icon-nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Belépés</span>
+                </a>
+                <a href="register.php" class="icon-nav-link">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Regisztráció</span>
+                </a>
+            <?php endif; ?>
+        </div>
     </div>
 </header>
 
