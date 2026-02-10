@@ -30,33 +30,55 @@ if ($user_id) {
     }
 }
 
+    $categories = [];
+    $type_query = $conn->query("SHOW COLUMNS FROM products LIKE 'type'");
+    $type_row = $type_query->fetch_assoc();
+    preg_match("/^enum\(\'(.*)\'\)$/", $type_row['Type'], $matches);
+    $categories = explode("','", $matches[1]);
+
     $msg = $_GET['msg'] ?? null;
 
     $search_query = $_GET['search'] ?? '';
     $selected_cat = $_GET['cat'] ?? '';
 
+    // Szűrési feltételek
+    $where_clauses = ["p.active = 1", "p.approved = 1"];
+    if ($selected_cat !== '') {
+        $where_clauses[] = "p.type = '" . $conn->real_escape_string($selected_cat) . "'";
+    }
+    if ($search_query !== '') {
+        $where_clauses[] = "(p.name LIKE '%" . $conn->real_escape_string($search_query) . "%' OR f.brand_name LIKE '%" . $conn->real_escape_string($search_query) . "%')";
+    }
+    $where_sql = implode(" AND ", $where_clauses);
+    
+        $limit = 8; 
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $offset = ($page - 1) * $limit;
+
+    // Összes sor kiszámolása a szűrőkkel (Lapozáshoz elengedhetetlen)
+    $count_sql = "SELECT COUNT(*) as total FROM products p LEFT JOIN firm f ON p.firm_id = f.ID WHERE $where_sql";
+    $count_res = $conn->query($count_sql);
+    $totalRows = $count_res->fetch_assoc()['total'];
+    $totalPages = ceil($totalRows / $limit);
+
+    // Végleges SQL (LIMIT és OFFSET a legvégén!)
     $sql = "SELECT p.*, f.brand_name,
         (SELECT COUNT(*) FROM favorites WHERE user_id = $user_id AND product_id = p.ID) as is_fav,
         (SELECT COUNT(*) FROM shopping_list WHERE user_id = $user_id AND product_id = p.ID) as is_in_cart
         FROM products p
         LEFT JOIN firm f ON p.firm_id = f.ID
-        WHERE p.active = 1 AND p.approved = 1";
-    
-    if ($selected_cat !== '') {
-    $sql .= " AND p.type = '" . $conn->real_escape_string($selected_cat) . "'";
-    }
-    if ($search_query !== '') {
-    $sql .= " AND (p.name LIKE ? OR f.brand_name LIKE ?)";
-    $stmt = $conn->prepare($sql);
-    $term = "%$search_query%";
-    $stmt->bind_param("ss", $term, $term);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    }else {
-    $result = $conn->query($sql);
-    }
+        WHERE $where_sql
+        LIMIT $limit OFFSET $offset";
 
+    $result = $conn->query($sql);
+
+    function getPageUrl($p) {
+        $params = $_GET;
+        $params['page'] = $p;
+        return "?" . http_build_query($params);
+    }
 ?>
+
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -65,283 +87,401 @@ if ($user_id) {
     <title>SzuperShop - Főoldal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* --- VÁLTOZÓK --- */
         :root { 
-            --primary: #2c3e50; 
-            --accent: #3498db; 
-            --success: #27ae60; 
-            --danger: #e74c3c; 
+            --dark-blue: #1b263b; 
+            --accent-blue: #00d2ff; 
+            --light-bg: #f0f2f5;
+            --white: #ffffff; 
+            --success-green: #2ecc71; 
+            --danger-red: #ff4757;
+            --text-main: #333;
+            --text-muted: #888;
         }
 
+
+        /* --- ALAP BEÁLLÍTÁSOK --- */
         body { 
             font-family: 'Segoe UI', sans-serif; 
-            background: #f8f9fa; 
+            background: var(--light-bg); 
             margin: 0; 
+            color: var(--text-main);
         }
 
+
+        /* --- FEJLÉC SZERKEZET --- */
         header { 
-            background: var(--primary); 
+            background: var(--dark-blue); 
+            padding: 20px 5%; 
             color: white; 
-            padding: 0.8rem 5%; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
             position: sticky; 
             top: 0; 
             z-index: 1000; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .logo { 
-            font-size: 1.5rem; 
-            font-weight: bold; 
+        .header-top { 
             display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            min-width: 150px; 
-        }
-
-        .search-container { 
-            flex-grow: 1; 
-            display: flex; 
-            justify-content: center; 
-            padding: 0 20px; 
-        }
-        .search-box { 
-            position: relative; 
-            width: 100%; 
-            max-width: 500px; 
-        }
-        .search-box input { 
-            width: 100%; 
-            padding: 10px 15px 10px 40px; 
-            border-radius: 25px; 
-            border: none; 
-            outline: none; 
-            font-size: 0.9rem;
-        }
-        .search-box i { 
-            position: absolute; 
-            left: 15px; top: 50%; 
-            transform: translateY(-50%); 
-            color: #7f8c8d; 
-        }
-
-        nav { 
-            display: flex; 
-            gap: 20px; 
-            align-items: center; 
-            min-width: 150px; 
             justify-content: flex-end; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            gap: 20px; 
         }
-        nav a { 
+
+        .header-bottom { 
+            display: flex; 
+            align-items: center; 
+            gap: 30px; 
+        }
+
+
+        /* --- LOGO --- */
+        .logo { 
+            font-size: 2.2rem; 
+            font-weight: 900; 
             color: white; 
             text-decoration: none; 
-            font-size: 1.2rem; 
-            transition: 0.3s; 
-            position: relative; 
+            white-space: nowrap;
+        }
+
+        .logo span { 
+            color: var(--accent-blue); 
+        }
+
+
+        /* --- KERESŐ ÉS KATEGÓRIA --- */
+        .filter-form { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+            flex-grow: 1; 
+        }
+
+        .search-capsule {
+            background: rgba(255,255,255,0.1); 
+            border-radius: 50px; 
+            padding: 12px 25px; 
+            display: flex; 
+            align-items: center; 
+            border: 1px solid var(--accent-blue); 
+            flex-grow: 1;
+        }
+
+        .search-capsule input { 
+            background: transparent; 
+            border: none; 
+            color: white; 
+            width: 100%; 
+            outline: none; 
+            padding-left: 10px; 
+            font-size: 1rem; 
+        }
+
+        .category-box { 
+            background: rgba(255,255,255,0.15); 
+            border: 1px solid var(--accent-blue); 
+            border-radius: 15px; 
+            padding: 8px 15px; 
+            min-width: 200px; 
+        }
+
+        .cat-label { 
+            display: block; 
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            color: var(--accent-blue); 
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+
+        .category-box select { 
+            background: transparent; 
+            border: none; 
+            color: white; 
+            font-size: 0.95rem; 
+            outline: none; 
+            width: 100%; 
+            cursor: pointer; 
+        }
+
+        .category-box select option { 
+            background: var(--dark-blue); 
+            color: white; 
+        }
+
+
+        /* --- NAVIGÁCIÓS IKONOK --- */
+        .main-nav { 
+            display: flex; 
+            gap: 30px; 
+            align-items: center; 
+        }
+
+        .main-nav a { 
+            color: white; 
+            text-decoration: none; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-        }
-        nav a:hover { color: var(--accent); }
-        nav a span { 
-            font-size: 0.7rem; 
-            display: block; 
-            text-align: center; 
-            margin-top: 2px; 
+            transition: 0.3s; 
         }
 
-        /* Profil rész a nav-ban */
-        .user-profile {
-            display: flex;
-            align-items: center;
-            flex-direction: row;
-            gap: 10px;
-            background: rgba(255,255,255,0.1);
-            padding: 5px 15px 5px 5px;
-            border-radius: 25px;
-            border: 1px solid rgba(52, 152, 219, 0.2);
-            margin-right: 10px;
+        .main-nav i { 
+            font-size: 2rem; 
+            margin-bottom: 5px; 
         }
-        .nav-profile-img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+
+        .main-nav span { 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+
+        .main-nav a:hover { 
+            color: var(--accent-blue); 
+            transform: translateY(-3px);
+        }
+
+
+        /* --- FELHASZNÁLÓI INFÓ --- */
+        .user-pill { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            background: rgba(255,255,255,0.1); 
+            padding: 6px 18px; 
+            border-radius: 50px; 
+        }
+
+        .user-pill img { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            border: 2px solid var(--accent-blue); 
             object-fit: cover;
-            border: 2px solid var(--accent);
         }
-        .user-name {
+
+        .logout-link {
+            color: white;
+            text-decoration: none;
             font-size: 0.85rem;
-            font-weight: 500;
-            color: #fff;
+            opacity: 0.7;
+            transition: 0.3s;
         }
 
+        .logout-link:hover {
+            opacity: 1;
+            color: var(--danger-red);
+        }
+
+
+        /* --- TERMÉK GRID --- */
         .container { 
-            max-width: 1200px; 
-            margin: 30px auto; 
-            padding: 0 20px; 
+            max-width: 1300px; 
+            margin: 50px auto; 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
-            gap: 25px; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 35px; 
+            padding: 0 25px; 
         }
 
+
+        /* --- TERMÉKKÁRTYA --- */
         .card { 
             background: white; 
-            border-radius: 15px; 
+            border-radius: 20px; 
             padding: 20px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+            position: relative;
             display: flex; 
-            flex-direction: column; 
-            height: 90%;
+            flex-direction: column;
         }
-        .card-actions { 
+
+        .card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+        .image-container { 
+            height: 200px; 
             display: flex; 
+            align-items: center; 
             justify-content: center; 
-            gap: 25px; 
-            margin-top: 10px; 
-            padding-top: 10px; 
-            border-top: 2px solid #eeeeee6b;
+            margin-bottom: 20px; 
         }
-        .spacer { 
+
+        .image-container img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+        }
+
+        .card-content { 
             flex-grow: 1; 
         }
-        .card-footer {
-            margin-top: auto;
-            padding-top: 15px;
+
+        .card-content h4 { 
+            margin: 0; 
+            font-size: 1.2rem;
+            color: var(--dark-blue);
         }
-        .card img { 
-            width: 100%;
-            height: 180px;
-            object-fit: contain;
+
+        .brand-text { 
+            color: var(--text-muted); 
+            font-size: 0.9rem; 
+            margin: 8px 0; 
         }
+
         .price-tag { 
-            font-size: 1.3rem; 
-            font-weight: bold; 
-            color: var(--success); 
-            margin: 10px 0 ; 
-            margin-top: auto; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            color: var(--success-green);
+            margin-top: 10px; /* Csak egy pici hely a szövegtől */
+            margin-bottom: 5px; /* Szinte rátapad az elválasztó vonalra */
         }
-        .btn-cart { 
-            display: block; 
-            background: var(--primary); 
-            color: white; 
-            padding: 10px; 
-            border-radius: 8px; 
+
+
+        .card-actions {
+            display: flex;
+            justify-content: center; /* Középre igazítja az elemeket vízszintesen */
+            align-items: center;     /* Középre igazítja az elemeket függőlegesen */
+            gap: 40px;               /* Távolság a két ikon között */
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .card-actions a {
+            text-decoration: none;
+            color: #ddd;
+        }
+
+        .card-actions i { 
+            font-size: 1.8rem; 
+            transition: 0.3s; 
+        }
+
+        .card-actions a:hover i {
+            transform: scale(1.2);
+        }
+
+        .active-fav { 
+            color: var(--danger-red) !important; 
+        }
+
+        .active-cart { 
+            color: var(--success-green) !important; 
+        }
+
+
+        /* --- PAGINATION --- */
+        .pagination { 
+            display: flex; 
+            justify-content: center; 
+            gap: 12px; 
+            padding: 60px 0; 
+        }
+
+        .pagination a { 
+            padding: 12px 22px; 
+            border-radius: 14px; 
             text-decoration: none; 
-            margin-top: 15px; 
+            background: white; 
+            color: var(--dark-blue); 
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: 0.3s;
         }
-        .brand_name { 
-            margin-top: auto; 
+
+        .pagination a.active { 
+            background: var(--dark-blue); 
+            color: white; 
         }
     </style>
+
 </head>
 <body>
 
 <header>
-    <div class="logo">
-        <i class="fas fa-shopping-bag"></i> SzuperShop
+    <div class="header-top">
+        <?php if($user_id || $firm_id): ?>
+            <div class="user-pill">
+                <img src="uploads/profiles/<?= $profile_pic ?>" alt="P">
+                <span style="font-weight: bold; font-size: 0.9rem;"><?= htmlspecialchars($display_name) ?></span>
+            </div>
+            <a href="logout.php" class="logout-link"><i class="fas fa-sign-out-alt"></i> Kijelentkezés</a>
+        <?php endif; ?>
     </div>
 
-    <div class="search-container">
-        <form action="index.php" method="GET" style="display: flex; gap: 80px; width: 100%; max-width: 600px;">
-            <div class="search-box" style="flex-grow: 1;">
+    <div class="header-bottom">
+        <a href="index.php" class="logo">Szuper<span>Shop</span></a>
+
+        <form action="index.php" method="GET" class="filter-form">
+            <div class="search-capsule">
                 <i class="fas fa-search"></i>
                 <input type="text" name="search" placeholder="Keresés a termékek között..." value="<?= htmlspecialchars($search_query) ?>">
             </div>
-                
-            <div style="position: relative; min-width: 50px;">
-            <label for="cat-select" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: white; cursor: pointer; z-index: 10;">
-                <i class="fas fa-bars"></i>
-            </label>
-            <select name="cat" id="cat-select" onchange="this.form.submit()" 
-                style="padding: 10px 15px 10px 40px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2); 
-                       background: rgba(255,255,255,0.1); color: white; outline: none; cursor: pointer; appearance: none; width: 150px; font-size: 0.85rem;">
-                <option value="" style="color: black;">Kategóriák</option>
-                    <?php
-                    $categories = ['Zöldség és gyümölcs', 'Tejtermék- tojás', 'Pékáru', 'Húsáru', 'Mélyhűtött', 'Alapvető élelmiszerek', 'Italok', 'Speciális', 'Háztartás', 'Drogéria', 'Kisállat', 'Otthon-hobbi'];
-                    foreach ($categories as $cat): ?>
-                <option value="<?= $cat ?>" <?= $selected_cat == $cat ? 'selected' : '' ?> style="color: black;">
-                    <?= $cat ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
+
+            <div class="category-box">
+                <span class="cat-label">Kategóriák</span>
+                <select name="cat" onchange="this.form.submit()">
+                    <option value="">Összes kategória</option>
+                    <?php foreach ($categories as $cat): ?>
+                        <option value="<?= htmlspecialchars($cat) ?>" <?= ($selected_cat == $cat) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cat) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
         </form>
+
+        <nav class="main-nav">
+            <a href="favorites.php"><i class="far fa-heart"></i><span>Kedvencek</span></a>
+            <a href="cart_page.php"><i class="fas fa-shopping-cart"></i><span>Kosár</span></a>
+            <a href="login.php"><i class="far fa-user"></i><span>Bejelentkezés</span></a>
+        </nav>
     </div>
-
-    <nav>
-    <?php if($user_id || $firm_id): ?>
-        <a href="profile.php" class="user-profile" title="Profil szerkesztése">
-            <img src="uploads/profiles/<?= $profile_pic ?>" class="nav-profile-img" alt="Profil">
-            <span class="user-name" style="display: inline; font-size: 0.9rem;"><?= htmlspecialchars($display_name) ?></span>
-        </a>
-
-        <?php if($role === 'admin'): ?>
-            <a href="admin.php" title="Adminisztráció"><i class="fas fa-user-shield"></i><span>Admin</span></a>
-        <?php endif; ?>
-        
-        <?php if(!$firm_id): ?>
-            <a href="favorites.php" title="Kedvencek"><i class="fas fa-heart"></i><span>Kedvenc</span></a>
-            <a href="cart_page.php" title="Kosár"><i class="fas fa-shopping-cart"></i><span>Kosár</span></a>
-        <?php else: ?>
-            <a href="firm_dashboard.php" title="Irodám"><i class="fas fa-store"></i><span>Irodám</span></a>
-        <?php endif; ?>
-        
-        <a href="logout.php" title="Kilépés" style="color: var(--danger);"><i class="fas fa-sign-out-alt"></i><span>Kilépés</span></a>
-    <?php else: ?>
-        <a href="login.php" title="Bejelentkezés"><i class="fas fa-user"></i><span>Belépés</span></a>
-        <a href="register.php" title="Regisztráció"><i class="fas fa-user-plus"></i><span>Regisztráció</span></a>
-    <?php endif; ?>
-</nav>
 </header>
 
 <?php
 $cat_res = $conn->query("SELECT 'type' FROM products ORDER BY name ASC");
 ?>
-
 <div class="container">
-    <?php if ($result->num_rows > 0): ?>
+    <?php if ($result && $result->num_rows > 0): ?>
         <?php while($row = $result->fetch_assoc()): ?>
-    <div class="card">
-        <div class="card-actions">
+            <div class="card">
+                <a href="description.php?id=<?= $row['ID'] ?>" class="image-container">
+                    <img src="uploads/<?= $row['picture'] ?: 'no_image.jpg' ?>" alt="termék">
+                </a>
+
+                <div class="card-content">
+                    <h4><?= htmlspecialchars($row['name']) ?></h4>
+                    <p class="brand-name"><?= htmlspecialchars($row['brand_name'] ?: 'Saját termék') ?></p>
+                </div>
+
+                <div class="price-tag">
+                    <?= number_format($row['price'], 0, ',', ' ') ?> Ft
+                </div>
+
+                <div class="card-actions">
+                    <div class="action-icons">
+                        <?php if ($row['is_fav'] > 0): ?>
+                            <a href="cart_actions.php?remove_fav=<?= $row['ID'] ?>"><i class="fa-solid fa-heart" style="color: #ff4757;"></i></a>
+                        <?php else: ?>
+                            <a href="cart_actions.php?add_to_fav=<?= $row['ID'] ?>"><i class="fa-regular fa-heart"></i></a>
+                        <?php endif; ?>
                     </div>
-    <a href="description.php?id=<?= $row['ID'] ?>" style="text-decoration: none; color: inherit;">
-        <img src="uploads/<?= $row['picture'] ?: 'no_image.jpg' ?>" alt="termék">
-        <h4><?= htmlspecialchars($row['name']) ?></h4>
-    </a>
 
-    <div class="spacer"></div>
-
-    <div class="card-footer">
-        <p class="brand-name"><?= htmlspecialchars($row['brand_name'] ?: 'Saját termék') ?></p>
-        <div class="price-tag"><?= number_format($row['price'], 0, ',', ' ') ?> Ft</div>
-    </div>
-
-    <div class="card-actions">
-        <?php if ($row['is_fav'] > 0): ?>
-            <a href="cart_actions.php?remove_fav=<?= $row['ID'] ?>" title="Eltávolítás a kedvencekből">
-                <i class="fa-solid fa-heart" style="color: #e74c3c; font-size: 1.4rem;"></i>
-            </a>
-        <?php else: ?>
-            <a href="cart_actions.php?add_to_fav=<?= $row['ID'] ?>" title="Kedvencekhez adom">
-                <i class="fa-regular fa-heart" style="color: #ccc; font-size: 1.4rem;"></i>
-            </a>
-        <?php endif; ?>
-
-        <?php if ($row['is_in_cart'] > 0): ?>
-            <a href="cart_page.php" title="Már a kosárban van">
-                <i class="fa-solid fa-cart-shopping" style="color: #27ae60; font-size: 1.4rem;"></i>
-            </a>
-        <?php else: ?>
-            <a href="cart_actions.php?add_to_cart=<?= $row['ID']?>?>" title="Kosárba teszem">
-                <i class="fa-solid fa-cart-plus" style="color: #ccc; font-size: 1.4rem;"></i>
-            </a>
-        <?php endif; ?>
-        </div>
-        </div><?php endwhile; ?>
+                    <?php if ($row['is_in_cart'] > 0): ?>
+                        <a href="cart_page.php"><i class="fa-solid fa-cart-shopping" style="color: #2ecc71;"></i></a>
+                    <?php else: ?>
+                        <a href="cart_actions.php?add_to_cart=<?= $row['ID'] ?>"><i class="fa-solid fa-cart-plus"></i></a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endwhile; ?>
     <?php else: ?>
-        <p style="text-align:center; grid-column: 1/-1;">Nincs a keresésnek megfelelő termék.</p>
+        <div class="no-result">Sajnos nem találtunk ilyen terméket.</div>
     <?php endif; ?>
 </div>
 </body>
