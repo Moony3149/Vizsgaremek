@@ -1,0 +1,6 @@
+Mezei usernek nekm kell felhasználói fiók, csak ha használni szeretné az oldal extra funkcióit(bevásárlólista, szívecsker)
+A céges user: 
+- termékfeltültése: akár képpel
+- termékek kezelése(árak, elérhetőség, mennyiség, részletes temékadatok)
+
+Admin: Tudja kezeli a cégeket: postolhat vagy nem, admin hagyja jóvá az összes terméket
