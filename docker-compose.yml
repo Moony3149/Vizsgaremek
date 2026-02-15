@@ -1,0 +1,27 @@
+services:
+  db:
+    image: mariadb:10.4
+    container_name: vizsgaremek_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: firms
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_USER: newsletter
+      MYSQL_PASSWORD: "N3w#l3dd3r!"
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./db_data:/var/lib/mysql
+      # Automatikusan betölti a táblákat (users, products, stb.)
+      - ./firms.sql:/docker-entrypoint-initdb.d/firms.sql
+
+  web:
+    build: .
+    container_name: vizsgaremek_web
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db

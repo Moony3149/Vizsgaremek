@@ -1,121 +1,194 @@
 <?php
-include('connect.php');
-echo ("Termékek");
+include("connect.php");
 
-// adat felvitel
-if (($_SERVER["REQUEST_METHOD"] == "POST") && isset($_POST['ID']) && isset($_POST['name']) && !isset($_POST['description']) 
-    && !isset($_POST['price']) && !isset($_POST['amount']) && !isset($_POST['type'])) {
-    
-    $pid = $conn->real_escape_string($_POST['ID']);
-    $name = $conn->real_escape_string($_POST['name']);
-    $desc= $conn->real_escape_string($_POST['description']);
-    $price= $conn->real_escape_string($_POST['price']);
-    $amount= $conn->real_escape_string($_POST['amount']);
-    $type= $conn->real_escape_string($_POST['type']);
-    $pic= $conn->real_escape_string($_POST['picture']);
+/* ======================
+   TERMÉK FELVÉTEL
+====================== */
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
 
-    if(isset($_POST['active']) && $_POST['active'] == '1'){
-        $active = 1;
-    } else {
-        $active = 0;
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $price = $_POST['price'];
+    $amount = $_POST['amount'];
+    $type = $_POST['type'];
+    $active = isset($_POST['active']) ? 1 : 0;
+
+    // kép (csak név mentése)
+    $picture = $_FILES['picture']['name'];
+    if ($picture) {
+        move_uploaded_file($_FILES['picture']['tmp_name'], "uploads/$picture");
     }
-    $sql = "INSERT INTO `termek`(`ID`, `name`, `description`, `price`, `amount`, `type`, `picture`, `active`) VALUES ('$pid','$name','$desc','$price','$amount','$type','$pic','$active')";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issiiiss", $pid, $name, $desc, $price, $amount, $type, $pic, $active);
 
-    if ($stmt->execute()) {
-        echo "Termék sikeresen felvéve!";
-    } else {
-        echo "Hiba: " . $stmt->error;
-    }
+    $stmt = $conn->prepare("
+        INSERT INTO products 
+        (name, description, price, amount, type, picture, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        "ssdisii",
+        $name,
+        $description,
+        $price,
+        $amount,
+        $type,
+        $picture,
+        $active
+    );
+
+    $stmt->execute();
 }
 
-// adat modositas
-if (($_SERVER["REQUEST_METHOD"] == "POST") && isset($_POST['ID']) && isset($_POST['name']) && !isset($_POST['description']) 
-    && !isset($_POST['price']) && !isset($_POST['amount']) && !isset($_POST['type'])) {
+/* ======================
+   TERMÉK MÓDOSÍTÁS
+====================== */
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit'])) {
 
-    if(isset($_POST['active'])){
-        $active = 1;
-    } else {
-        $active = 0;
+    $id = $_POST['id'];
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $price = $_POST['price'];
+    $amount = $_POST['amount'];
+    $type = $_POST['type'];
+    $active = isset($_POST['active']) ? 1 : 0;
+
+    $picture = $_POST['old_picture'];
+
+    if (!empty($_FILES['picture']['name'])) {
+        $picture = $_FILES['picture']['name'];
+        move_uploaded_file($_FILES['picture']['tmp_name'], "uploads/$picture");
     }
 
-    $pid = $conn->real_escape_string($_POST['ID']);
-    $name = $conn->real_escape_string($_POST['name']);
-    $desc= $conn->real_escape_string($_POST['description']);
-    $price= $conn->real_escape_string($_POST['price']);
-    $amount= $conn->real_escape_string($_POST['amount']);
-    $type= $conn->real_escape_string($_POST['type']);
-    $pic= $conn->real_escape_string($_POST['picture']);
+    $stmt = $conn->prepare("
+        UPDATE products 
+        SET name=?, description=?, price=?, amount=?, type=?, picture=?, active=?
+        WHERE ID=?
+    ");
 
-    $sql = "UPDATE `termek` SET `name`='$name',`description`='$desc',`price`='$price',`amount`='$amount',`type`='$type',`picture`='$pic',`active`=$active WHERE `ID`=$pid";
-    //echo "if utan<br>".$sql;
+    $stmt->bind_param(
+        "ssdisiii",
+        $name,
+        $description,
+        $price,
+        $amount,
+        $type,
+        $picture,
+        $active,
+        $id
+    );
 
-    if ($conn->query($sql) === TRUE) {
-        echo "Adat modositva sikeresen";
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-    }
+    $stmt->execute();
 }
 
-$sql_query = "SELECT * FROM product;";
+/* ======================
+   LISTÁZÁS
+====================== */
+$result = $conn->query("SELECT * FROM products");
+?>
 
-$result = $conn->query($sql_query);
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Termékkezelés</title>
+<style>
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 6px; }
+input, select, textarea { width: 100%; }
+img { max-width: 80px; }
+</style>
+</head>
+<body>
 
-if (!$result) {
-    die("SQL error: " . $conn->error);
-}
+<h2>➕ Új termék</h2>
 
-if( $result->num_rows > 0 ) {
-    $product = array();
-    
-    while( $row = $result->fetch_assoc() ) {
-        $product[] = $row;
-    }
+<form method="POST" enctype="multipart/form-data">
+    <input name="name" placeholder="Név" required>
+    <textarea name="description" placeholder="Leírás"></textarea>
+    <input type="number" step="0.01" name="price" placeholder="Ár" required>
+    <input type="number" name="amount" placeholder="Mennyiség" required>
 
-    $mizu = '';
+    <select name="type" required>
+        <option value="">-- Típus --</option>
+        <option>Zöldség és gyümölcs</option>
+        <option>Tejtermék- tojás</option>
+        <option>Pékáru</option>
+        <option>Húsáru</option>
+        <option>Mélyhűtött</option>
+        <option>Alapvető élelmiszerek</option>
+        <option>Italok</option>
+        <option>Speciális</option>
+        <option>Háztartás</option>
+        <option>Drogéria</option>
+        <option>Kisállat</option>
+        <option>Otthon-hobbi</option>
+    </select>
 
-    echo "<table border='1'>
-    <tr>
-    <th>Terméknév</th>
-    <th>Termékszám</th>
-    <th>Termék ára</th>
-    <th>Termék leírása</th>
-    <th>Active</th>
-    <th>Bekuld</th>
-    <th>Torles</th>
-  </tr>";
-  echo "<form action='#' method='POST'>";                    
-        echo "<td>" .'<input type="text" id="" name="name" value="" placeholder="Terméknév">' . "</td>";
-        echo "<td>" .'<input type="int" id="" name="id" value="" placeholder="Termékszám">' . "</td>";
-        echo "<td>" .'<input type="int" id="" name="email" value="" placeholder="Termék ára">' . "</td>";
-        echo "<td>" .'<input type="text" id="" name="description" value="" placeholder="Termék leírása">' . "</td>";
-        echo "<td>" .'<input type="checkbox" id="" name="active" value="1">' . "</td>";
-        echo "<td>" .  '<input type="submit" value="FELVISZ">' . "</td></tr>";
-        echo "</form>";
-    for($i = 0; $i < $result->num_rows; $i++) {
-        
-        if($teachers[$i]['active'] == 1){
-        $mizu = 'checked';
-        } else {
-        $mizu = '';
-        }
+    <input type="file" name="picture">
+    <label><input type="checkbox" name="active"> Aktív</label>
+    <br><br>
+    <button name="add">Felvitel</button>
+</form>
 
+<hr>
 
-        echo "<form action='#' method='POST'>";
-        echo "" .'<input type="hidden" id="' . $teachers[$i]['teacherID'] . '" name="tid" value="' . $teachers[$i]['teacherID'] . '" readonly>' . "";
-        echo "<td>" .'<input type="text" id="' . $teachers[$i]['teacherID'] . '" name="name" value="' . $teachers[$i]['name'] . '">' . "</td>";
-        echo "<td>" .'<input type="text" id="' . $teachers[$i]['teacherID'] . '" name="email" value="' . $teachers[$i]['email'] . '">' . "</td>";
-        echo '<td><input type="checkbox" id="active_' . $teachers[$i]['teacherID'] . '" name="active" value="1" ' . $mizu . '></td>';
-        echo "<td>" .  '<input type="submit" value="ADATVARIA">' . "</td>";
-        echo "<td>" .  '<input type="button" value="Törlés" onclick="if(confirm(\'Biztosan törlöd ' . $teachers[$i]['name'] . '?\')) { window.location=\'menciform.php?id=' . $teachers[$i]['teacherID'] . '\'; }">' . "</td></tr>";
-        echo "</form>";
-        
-    }
-    
-    echo "</table>";
-} else {
-    echo json_encode(array());
+<h2>📦 Termékek</h2>
 
+<table>
+<tr>
+<th>Név</th>
+<th>Leírás</th>
+<th>Ár</th>
+<th>Menny.</th>
+<th>Típus</th>
+<th>Kép</th>
+<th>Aktív</th>
+<th>Művelet</th>
+</tr>
+
+<?php while ($row = $result->fetch_assoc()): ?>
+<form method="POST" enctype="multipart/form-data">
+<tr>
+<td><input name="name" value="<?= $row['name'] ?>"></td>
+<td><textarea name="description"><?= $row['description'] ?></textarea></td>
+<td><input name="price" value="<?= $row['price'] ?>"></td>
+<td><input name="amount" value="<?= $row['amount'] ?>"></td>
+
+<td>
+<select name="type">
+<?php
+$types = [
+'Zöldség és gyümölcs','Tejtermék- tojás','Pékáru','Húsáru','Mélyhűtött',
+'Alapvető élelmiszerek','Italok','Speciális','Háztartás','Drogéria',
+'Kisállat','Otthon-hobbi'
+];
+foreach ($types as $t) {
+    $sel = ($row['type'] == $t) ? "selected" : "";
+    echo "<option $sel>$t</option>";
 }
 ?>
+</select>
+</td>
+
+<td>
+<?php if ($row['picture']): ?>
+<img src="uploads/<?= $row['picture'] ?>"><br>
+<?php endif; ?>
+<input type="file" name="picture">
+</td>
+
+<td><input type="checkbox" name="active" <?= $row['active'] ? 'checked' : '' ?>></td>
+
+<td>
+<input type="hidden" name="id" value="<?= $row['ID'] ?>">
+<input type="hidden" name="old_picture" value="<?= $row['picture'] ?>">
+<button name="edit">Mentés</button>
+</td>
+</tr>
+</form>
+<?php endwhile; ?>
+
+</table>
+
+</body>
+</html>
